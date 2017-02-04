@@ -8,3 +8,9 @@ Email: bouwkast@mail.gvsu.edu
 """
 
 import matplotlib as plt
+import csv
+
+
+# data = open('training_movie_data.csv', 'r')
+# data = open('metric_test.csv')
+data = csv.reader('metric_test.csv', newline='')
