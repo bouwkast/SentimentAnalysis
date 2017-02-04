@@ -7,10 +7,28 @@ Date Last Modified: 2/3/2017
 Email: bouwkast@mail.gvsu.edu
 """
 
-import matplotlib as plt
+import matplotlib.pyplot as plt
 import csv
+import numpy as np
+
+# might be a little bit off - but it is close enough to get meaningful data from it
+review_word_count = []
+with open('training_movie_data.csv', newline='') as csvfile:
+    reader = csv.reader(csvfile)
+    try:
+        reader = csv.reader(csvfile)
+        for row in reader:
+            review_word_count.append(len(row[0].split()))
+    except UnicodeDecodeError:  # some characters we can't decode in the given dataset
+        next(reader)
 
 
-# data = open('training_movie_data.csv', 'r')
-# data = open('metric_test.csv')
-data = csv.reader('metric_test.csv', newline='')
+bins = np.arange(0, 750, 50)
+
+plt.xlim(0, 800)
+plt.hist(review_word_count, bins=bins, alpha=.5)
+plt.title('Average review length in words')
+plt.xlabel('Number of words')
+plt.ylabel('count')
+#  we are making a histogram
+plt.show()
