@@ -46,7 +46,8 @@ y_test = df.loc[training_size:, 'sentiment'].values
 
 # Perform feature extraction on the text.
 # Hint: Perhaps there are different preprocessors to
-# test?  
+# test?
+
 tfidf = TfidfVectorizer(strip_accents=None,
                         lowercase=False,
                         preprocessor=None)
