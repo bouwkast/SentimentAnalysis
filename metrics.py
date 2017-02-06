@@ -2,8 +2,8 @@
 This file will scrape some metrics from our data so that we can build our
 Tensors more intelligently - looking for word counts, review length, useless words, etc.
 Filename: metrics.py
-Author: Steven
-Date Last Modified: 2/3/2017
+Author: Steven Bouwkamp
+Date Last Modified: 2/6/2017
 Email: bouwkast@mail.gvsu.edu
 """
 
@@ -13,7 +13,7 @@ import numpy as np
 from html.parser import HTMLParser
 import pickle
 
-
+#  This uses the python HTLMParser to find and remove all HTML elements from our data
 class MyHTMLParser(HTMLParser):
     def __init__(self):
         super().__init__()
@@ -28,6 +28,8 @@ class MyHTMLParser(HTMLParser):
     def get_data(self):
         return ' '.join(self.fed)
 
+
+# TODO - not sure if periods are being counted as a word eg ('word.' or '.' might be a word) not sure
 
 parser = MyHTMLParser()
 
@@ -44,17 +46,17 @@ def get_frequent_words(filename):
         try:
             for row in reader:
                 review = row[0]
-                parser.feed(review)
-                review = parser.get_data()
-                review = review.lower().split()
+                parser.feed(review)  # take the review and give it to the html parser
+                review = parser.get_data()  # grab the data from the parser
+                review = review.lower().split()  # turn everything into lower case - split each word into list
                 for word in review:
                     if word in word_freq:
-                        word_freq[word] += 1
+                        word_freq[word] += 1  # if the word is already there - increment its count by 1
                     else:
-                        word_freq[word] = 1
+                        word_freq[word] = 1  # if the word is not in the dictionary add it
 
             freq_file = open('word_frequency', 'wb')
-            pickle.dump(word_freq, freq_file)
+            pickle.dump(word_freq, freq_file)  # pickling our dictionary for later use
 
         except UnicodeDecodeError:  # some characters we can't decode in the given dataset
             next(reader)
@@ -103,6 +105,7 @@ def create_frequency_hist(filename):
     plt.show()
 
 
+# TODO - this is not complete or working
 def create_integer_encoding(filename):
     """
     Return a dictionary with the key as the word and the value is its popularity
@@ -110,6 +113,8 @@ def create_integer_encoding(filename):
     Example - the word 'the' might be the most frequently used word in the data
     however, the word 'the' doesn't help us to classify the data - so it's integer
     encoding would be 1 and we could then exclude it from training.
+
+    With this we could simply go and tell our training model to exclude the 5 most common words
     :param filename: dataset csv file
     :return: a dictionary of encodings
     """
