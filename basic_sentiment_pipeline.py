@@ -10,14 +10,15 @@ import pickle
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.naive_bayes import GaussianNB
 
 # Hint: These are not actually used in the current 
 # pipeline, but would be used in an alternative 
 # tokenizer such as PorterStemming.
-import nltk
-nltk.download('stopwords')
-from nltk.corpus import stopwords
-stop = stopwords.words('english')
+# import nltk
+# nltk.download('stopwords')
+# from nltk.corpus import stopwords
+# stop = stopwords.words('english')
 
 """
     This is a very basic tokenization strategy.  
@@ -38,7 +39,7 @@ df = pd.read_csv('./training_movie_data.csv')
 # Hint: This might be an area to change the size
 # of your training and test sets for improved 
 # predictive performance.
-training_size = 40000
+training_size = 37500
 X_train = df.loc[:training_size, 'review'].values
 y_train = df.loc[:training_size, 'sentiment'].values
 X_test = df.loc[training_size:, 'review'].values
@@ -60,8 +61,11 @@ tfidf = TfidfVectorizer(strip_accents=None,
 # Hint: Are there other options to add to this process?
 # Look to documentation on Regression or similar methods for hints.
 # Possibly investigate alternative classifiers for text/sentiment.
+
+#  http://scikit-learn.org/stable/auto_examples/linear_model/plot_logistic_l1_l2_sparsity.html
+#  Above link for info on the value C in the classifier (clf)
 lr_tfidf = Pipeline([('vect', tfidf),
-                     ('clf', LogisticRegression(C=0.001,fit_intercept=False,penalty='l1',random_state=0))])
+                     ('clf', LogisticRegression(C=1.00,fit_intercept=False,penalty='l2',random_state=0))])
 
 # Train the pipline using the training set.
 lr_tfidf.fit(X_train, y_train)
