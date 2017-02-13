@@ -30,7 +30,7 @@ def tokenizer(text):
     return text.split()
 
 # Read in the dataset and store in a pandas dataframe
-df = pd.read_csv('./training_movie_data_cleaned.csv')
+df = pd.read_csv('./training_movie_data_cleaned.csv', encoding='ascii')
 
 # Split your data into training and test sets.
 # Allows you to train the model, and then perform
@@ -40,9 +40,9 @@ df = pd.read_csv('./training_movie_data_cleaned.csv')
 # of your training and test sets for improved 
 # predictive performance.
 training_size = 37500
-X_train = df.loc[:training_size, 'review'].values
+X_train = df.loc[:training_size, 'review'].values.astype('U')
 y_train = df.loc[:training_size, 'sentiment'].values
-X_test = df.loc[training_size:, 'review'].values
+X_test = df.loc[training_size:, 'review'].values.astype('U')
 y_test = df.loc[training_size:, 'sentiment'].values
 
 # Perform feature extraction on the text.

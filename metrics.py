@@ -17,6 +17,9 @@ import pandas as pd
 
 #  This uses the python HTLMParser to find and remove all HTML elements from our data
 class MyHTMLParser(HTMLParser):
+    def error(self, message):
+        pass
+
     def __init__(self):
         super().__init__()
         self.reset()
@@ -122,16 +125,22 @@ def remove_unknown(filename):
 
     file = '.'.join(file)  # taking our input data and splicing 'cleaned' onto it
     #  TODO - need to use df.drop() somehow to remove unknown characters (I think)
-    df = pd.read_csv(filename, encoding='ascii')
+    df = pd.read_csv(filename, encoding='utf-8', keep_default_na=True)
 
     for i in range(0, len(df)):
 
         parser.feed(df['review'][i])
         row = parser.get_data()
-        df.set_value(i, 'review', row)
+        new_row = ''
+        for char in row:
+            if ord(char) < 128:
+                new_row += char
+        df.set_value(i, 'review', new_row)
         parser.clear_data()
 
-    df.to_csv(path_or_buf=file, index=False, encoding='ascii')
+    df.to_csv(path_or_buf=file, index=False, encoding='utf-8', na_rep=' ')
+    # print(df.loc[0, 'review'].values)
+
 
 
 # TODO - this is not complete or working
