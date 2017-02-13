@@ -30,7 +30,7 @@ def tokenizer(text):
     return text.split()
 
 # Read in the dataset and store in a pandas dataframe
-df = pd.read_csv('./training_movie_data.csv')
+df = pd.read_csv('./training_movie_data_cleaned.csv')
 
 # Split your data into training and test sets.
 # Allows you to train the model, and then perform

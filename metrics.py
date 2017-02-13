@@ -121,16 +121,17 @@ def remove_unknown(filename):
     file[0] += '_cleaned'
 
     file = '.'.join(file)  # taking our input data and splicing 'cleaned' onto it
-
-    df = pd.read_csv(filename)
+    #  TODO - need to use df.drop() somehow to remove unknown characters (I think)
+    df = pd.read_csv(filename, encoding='ascii')
 
     for i in range(0, len(df)):
+
         parser.feed(df['review'][i])
         row = parser.get_data()
         df.set_value(i, 'review', row)
         parser.clear_data()
 
-    df.to_csv(path_or_buf=file, index=False)
+    df.to_csv(path_or_buf=file, index=False, encoding='ascii')
 
 
 # TODO - this is not complete or working
@@ -160,3 +161,5 @@ def create_integer_encoding(filename):
 # get_frequent_words('training_movie_data.csv')
 # create_frequency_hist('word_frequency')
 remove_unknown('training_movie_data.csv')
+
+# print(type('Â'))
