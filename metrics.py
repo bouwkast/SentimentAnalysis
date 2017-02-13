@@ -12,6 +12,8 @@ import csv
 import numpy as np
 from html.parser import HTMLParser
 import pickle
+import pandas as pd
+
 
 #  This uses the python HTLMParser to find and remove all HTML elements from our data
 class MyHTMLParser(HTMLParser):
@@ -105,6 +107,75 @@ def create_frequency_hist(filename):
     plt.show()
 
 
+def remove_unknown(filename):
+    """
+    Return a csv file of the cleaned file by removing HTML and unknown characters.
+    :param filename: is the name of the file to clean
+    :return: the new, cleaned csv file
+    """
+    file = filename.split('.')
+    file[0] += '_cleaned'
+
+    file = '.'.join(file)
+    print(file)
+
+    df = pd.read_csv(filename)
+    # print(df.head())
+    index = 0
+    # print(df['sentiment'])
+    print(df['sentiment'][11])
+    print(df['review'][0])
+    row = df['review'][0]
+    # print(row)
+    parser.feed(row)
+    row = parser.get_data()
+    print(row)
+    df.set_value(0, 'review', row)
+
+    # df['review'].replace(to_replace='<br /><br />', value=' ', regex=True)
+    print(df['review'][0])
+    # print(df['review'][0])
+    # for row in df['review']:
+    #     parser.feed(row)
+    #     review = parser.get_data()
+    #     row = review
+
+
+
+
+
+
+
+
+
+
+    # word_freq = {}
+    # with open(filename, newline='') as csvfile:
+    #     reader = csv.reader(csvfile)  # skip first line
+    #     next(reader)
+    #
+    #     try:
+    #         for row in reader:
+    #             review = row[0]
+    #             parser.feed(review)  # take the review and give it to the html parser
+    #             review = parser.get_data()  # grab the data from the parser
+    #             review = review.lower().split()  # turn everything into lower case - split each word into list
+    #             for word in review:
+    #                 if word in word_freq:
+    #                     word_freq[word] += 1  # if the word is already there - increment its count by 1
+    #                 else:
+    #                     word_freq[word] = 1  # if the word is not in the dictionary add it
+    #
+    #         freq_file = open('word_frequency', 'wb')
+    #         pickle.dump(word_freq, freq_file)  # pickling our dictionary for later use
+    #
+    #     except UnicodeDecodeError:  # some characters we can't decode in the given dataset
+    #         next(reader)
+
+
+
+
+
 # TODO - this is not complete or working
 def create_integer_encoding(filename):
     """
@@ -130,4 +201,5 @@ def create_integer_encoding(filename):
 
 
 # get_frequent_words('training_movie_data.csv')
-create_frequency_hist('word_frequency')
+# create_frequency_hist('word_frequency')
+remove_unknown('training_movie_data.csv')

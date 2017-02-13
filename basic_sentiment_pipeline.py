@@ -67,6 +67,9 @@ tfidf = TfidfVectorizer(strip_accents=None,
 lr_tfidf = Pipeline([('vect', tfidf),
                      ('clf', LogisticRegression(C=1.00,fit_intercept=False,penalty='l2',random_state=0))])
 
+
+param_grid = []
+
 # Train the pipline using the training set.
 lr_tfidf.fit(X_train, y_train)
 
