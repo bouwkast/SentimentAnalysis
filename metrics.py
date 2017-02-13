@@ -39,35 +39,35 @@ class MyHTMLParser(HTMLParser):
 
 # TODO - not sure if periods are being counted as a word eg ('word.' or '.' might be a word) not sure
 
-parser = MyHTMLParser()
+# parser = MyHTMLParser()
 
 
 # going to replace the ignore_sequence with a SPACE
 # we will separate each word out into a frequency histogram
 
-def get_frequent_words(filename):
-    word_freq = {}
-    with open(filename, newline='') as csvfile:
-        reader = csv.reader(csvfile)  # skip first line
-        next(reader)
-
-        try:
-            for row in reader:
-                review = row[0]
-                parser.feed(review)  # take the review and give it to the html parser
-                review = parser.get_data()  # grab the data from the parser
-                review = review.lower().split()  # turn everything into lower case - split each word into list
-                for word in review:
-                    if word in word_freq:
-                        word_freq[word] += 1  # if the word is already there - increment its count by 1
-                    else:
-                        word_freq[word] = 1  # if the word is not in the dictionary add it
-
-            freq_file = open('word_frequency', 'wb')
-            pickle.dump(word_freq, freq_file)  # pickling our dictionary for later use
-
-        except UnicodeDecodeError:  # some characters we can't decode in the given dataset
-            next(reader)
+# def get_frequent_words(filename):
+#     word_freq = {}
+#     with open(filename, newline='') as csvfile:
+#         reader = csv.reader(csvfile)  # skip first line
+#         next(reader)
+#
+#         try:
+#             for row in reader:
+#                 review = row[0]
+#                 parser.feed(review)  # take the review and give it to the html parser
+#                 review = parser.get_data()  # grab the data from the parser
+#                 review = review.lower().split()  # turn everything into lower case - split each word into list
+#                 for word in review:
+#                     if word in word_freq:
+#                         word_freq[word] += 1  # if the word is already there - increment its count by 1
+#                     else:
+#                         word_freq[word] = 1  # if the word is not in the dictionary add it
+#
+#             freq_file = open('word_frequency', 'wb')
+#             pickle.dump(word_freq, freq_file)  # pickling our dictionary for later use
+#
+#         except UnicodeDecodeError:  # some characters we can't decode in the given dataset
+#             next(reader)
 
 
 def create_review_len_hist(filename):
@@ -128,7 +128,7 @@ def remove_unknown(filename):
     df = pd.read_csv(filename, encoding='utf-8', keep_default_na=True)
 
     for i in range(0, len(df)):
-
+        parser = MyHTMLParser()
         parser.feed(df['review'][i])
         row = parser.get_data()
         new_row = ''

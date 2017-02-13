@@ -1,5 +1,5 @@
 """
-    Train a logistic regresion model for document classification.
+    Train a logistic regression model for document classification.
 
     Search this file for the keyword "Hint" for possible areas of
     improvement.  There are of course others.
