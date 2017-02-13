@@ -27,6 +27,9 @@ class MyHTMLParser(HTMLParser):
     def handle_data(self, data):
         self.fed.append(data)
 
+    def clear_data(self):
+        self.fed = []
+
     def get_data(self):
         return ' '.join(self.fed)
 
@@ -84,6 +87,7 @@ def create_review_len_hist(filename):
     #  we are making a histogram
     plt.show()
 
+
 def create_frequency_hist(filename):
     """
     Takes a pickled dictionary and create a histogram of word frequencies
@@ -99,7 +103,7 @@ def create_frequency_hist(filename):
 
     # plt.bar(len(word_dict), word_dict.values(), align='center')
     plt.bar(x, y, width=100)
-    plt.xticks(x , word_dict.keys(), rotation='vertical')
+    plt.xticks(x, word_dict.keys(), rotation='vertical')
     plt.title('Unique words used in reviews and their counts')
     plt.xlabel('Word')
     plt.ylabel('count')
@@ -109,71 +113,24 @@ def create_frequency_hist(filename):
 
 def remove_unknown(filename):
     """
-    Return a csv file of the cleaned file by removing HTML and unknown characters.
+    Write a csv file of the cleaned file by removing HTML and unknown characters.
     :param filename: is the name of the file to clean
-    :return: the new, cleaned csv file
+    :return: None - writes to csv file the clean data
     """
     file = filename.split('.')
     file[0] += '_cleaned'
 
-    file = '.'.join(file)
-    print(file)
+    file = '.'.join(file)  # taking our input data and splicing 'cleaned' onto it
 
     df = pd.read_csv(filename)
-    # print(df.head())
-    index = 0
-    # print(df['sentiment'])
-    print(df['sentiment'][11])
-    print(df['review'][0])
-    row = df['review'][0]
-    # print(row)
-    parser.feed(row)
-    row = parser.get_data()
-    print(row)
-    df.set_value(0, 'review', row)
 
-    # df['review'].replace(to_replace='<br /><br />', value=' ', regex=True)
-    print(df['review'][0])
-    # print(df['review'][0])
-    # for row in df['review']:
-    #     parser.feed(row)
-    #     review = parser.get_data()
-    #     row = review
+    for i in range(0, len(df)):
+        parser.feed(df['review'][i])
+        row = parser.get_data()
+        df.set_value(i, 'review', row)
+        parser.clear_data()
 
-
-
-
-
-
-
-
-
-
-    # word_freq = {}
-    # with open(filename, newline='') as csvfile:
-    #     reader = csv.reader(csvfile)  # skip first line
-    #     next(reader)
-    #
-    #     try:
-    #         for row in reader:
-    #             review = row[0]
-    #             parser.feed(review)  # take the review and give it to the html parser
-    #             review = parser.get_data()  # grab the data from the parser
-    #             review = review.lower().split()  # turn everything into lower case - split each word into list
-    #             for word in review:
-    #                 if word in word_freq:
-    #                     word_freq[word] += 1  # if the word is already there - increment its count by 1
-    #                 else:
-    #                     word_freq[word] = 1  # if the word is not in the dictionary add it
-    #
-    #         freq_file = open('word_frequency', 'wb')
-    #         pickle.dump(word_freq, freq_file)  # pickling our dictionary for later use
-    #
-    #     except UnicodeDecodeError:  # some characters we can't decode in the given dataset
-    #         next(reader)
-
-
-
+    df.to_csv(path_or_buf=file, index=False)
 
 
 # TODO - this is not complete or working
