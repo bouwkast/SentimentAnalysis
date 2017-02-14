@@ -7,6 +7,7 @@
 
 import pandas as pd
 import pickle
+import numpy as np
 
 from sklearn.grid_search import GridSearchCV
 from sklearn.pipeline import Pipeline
@@ -39,6 +40,8 @@ def tokenizer(text):
 
 # Read in the dataset and store in a pandas dataframe
 df = pd.read_csv('./training_movie_data_cleaned.csv')
+np.random.seed(0)  # seed for reproducibility
+df = df.reindex(np.random.permutation(df.index))
 
 # Split your data into training and test sets.
 # Allows you to train the model, and then perform
