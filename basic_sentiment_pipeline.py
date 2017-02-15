@@ -13,6 +13,7 @@ from sklearn.grid_search import GridSearchCV
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
 from sklearn.feature_extraction.text import TfidfVectorizer
+from nltk.tokenize import word_tokenize, wordpunct_tokenize
 from sklearn.naive_bayes import GaussianNB
 from nltk.stem.porter import PorterStemmer
 from nltk.corpus import stopwords
@@ -35,8 +36,20 @@ from sklearn.linear_model import SGDClassifier as SGD
 """
 
 porter_stem = PorterStemmer()
+
+stop_words = set(stopwords.words('english')).union({'.', 'I', 'i', ',', '\'', 'it', '*', '?', '/', '-', '&', '<', '>', '\"'})
+
+
 def tokenizer(text):
     return [porter_stem.stem(word) for word in text.split()]
+
+def preprocessor(text):
+    #  let's tokenize everything before we stem it
+
+    word_punct = wordpunct_tokenize(text)
+    new_punct = [word for word in word_punct if word not in stop_words]
+    # After running - it seems like new_punct is the best
+    return ' '.join(new_punct)
 
 # Read in the dataset and store in a pandas dataframe
 df = pd.read_csv('./training_movie_data_cleaned.csv')
@@ -64,7 +77,7 @@ tfidf = TfidfVectorizer(strip_accents='unicode',
                         analyzer='word',
                         stop_words='english',
                         lowercase=False,
-                        preprocessor=None,
+                        preprocessor=preprocessor,
                         tokenizer=tokenizer)
 
 # tfidf = TfidfVectorizer(strip_accents=None,
@@ -100,7 +113,7 @@ tfidf = TfidfVectorizer(strip_accents='unicode',
 #  http://scikit-learn.org/stable/auto_examples/linear_model/plot_logistic_l1_l2_sparsity.html
 #  Above link for info on the value C in the classifier (clf)
 lr_tfidf = Pipeline([('vect', tfidf),
-                     ('clf', SGD())])
+                     ('clf', LogisticRegression(C=3.0,fit_intercept=False,penalty='l2',random_state=0))])
 
 # gs_lr_tfidf = GridSearchCV(lr_tfidf, param_grid_2,
 #                            scoring='accuracy',

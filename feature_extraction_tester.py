@@ -24,7 +24,7 @@ to_remove = {'and', 'or', 'i', 'be', 'a'}
 test_review = df['review'][5]  # this will be different each time because we are shuffling the indices
 print('INITIAL REVIEW: \n' + test_review + '\n')
 porter_stem = PorterStemmer()
-# nltk.download('punkt')
+nltk.download('punkt')
 # this one we are removing pretty much all punctuation TODO is this too much?
 stop_words = set(stopwords.words('english')).union({'.', 'I', 'i', ',', '\'', 'it', '*'})
 # stop_words = set(stopwords.words('english'))  # This is the default set of stopwords to remove
@@ -51,4 +51,6 @@ def tokenizer(text):
 
 cleaned = remove_stop_words(test_review.lower())
 tokenizer(cleaned)
+# porter_stem.stem('oed')
+
 

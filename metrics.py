@@ -13,6 +13,7 @@ import numpy as np
 from html.parser import HTMLParser
 import pickle
 import pandas as pd
+from bs4 import BeautifulSoup
 
 
 #  This uses the python HTLMParser to find and remove all HTML elements from our data
@@ -128,6 +129,11 @@ def remove_unknown(filename):
     df = pd.read_csv(filename, encoding='utf-8', keep_default_na=True)
 
     for i in range(0, len(df)):
+        # print(df['review'][i])
+        # souper = BeautifulSoup(df['review'][i])
+        # row = souper.get_text
+        # print(row)
+        # break
         parser = MyHTMLParser()
         parser.feed(df['review'][i])
         row = parser.get_data()
