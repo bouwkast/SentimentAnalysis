@@ -21,7 +21,7 @@ df = df.reindex(np.random.permutation(df.index))  # COMMENT OUT TO REMOVE RANDOM
 print(df.head(5))
 to_remove = {'and', 'or', 'i', 'be', 'a'}
 # let's specify what other type of words we want removed
-test_review = df['review'][5]  # this will be different each time because we are shuffling the indices
+test_review = df['review'][31]  # this will be different each time because we are shuffling the indices
 print('INITIAL REVIEW: \n' + test_review + '\n')
 porter_stem = PorterStemmer()
 nltk.download('punkt')
@@ -42,8 +42,11 @@ def remove_stop_words(text):
     new_punct = [word for word in word_punct if word not in stop_words]
     print('New Punct Text: ' + str(new_punct) + '\n')
 
+    output = ' '.join(new_punct)
+    letters_only = re.sub("[^a-zA-Z]",  " ", output)
+    print(letters_only)
     # After running - it seems like new_punct is the best
-    return ' '.join(new_punct)
+    return letters_only
 
 def tokenizer(text):
     test = [porter_stem.stem(word) for word in text.split()]
