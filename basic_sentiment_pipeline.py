@@ -78,7 +78,11 @@ tfidf = TfidfVectorizer(strip_accents='unicode',
                         stop_words='english',
                         lowercase=False,
                         preprocessor=preprocessor,
-                        tokenizer=tokenizer)
+                        tokenizer=tokenizer,
+                        max_df=.95,
+                        max_features=50000,
+                        sublinear_tf=True,
+                        ngram_range=(1, 3))
 
 # tfidf = TfidfVectorizer(strip_accents=None,
 #                         lowercase=False,
@@ -112,8 +116,14 @@ tfidf = TfidfVectorizer(strip_accents='unicode',
 
 #  http://scikit-learn.org/stable/auto_examples/linear_model/plot_logistic_l1_l2_sparsity.html
 #  Above link for info on the value C in the classifier (clf)
+# lr_tfidf = Pipeline([('vect', tfidf),
+#                      ('clf', LogisticRegression(C=3.0,fit_intercept=False,penalty='l2',random_state=0))])
+
+# lr_tfidf = Pipeline([('vect', tfidf),
+#                      ('clf', LogisticRegression(C=3.0,fit_intercept=False,penalty='l2',random_state=0))])
+
 lr_tfidf = Pipeline([('vect', tfidf),
-                     ('clf', LogisticRegression(C=3.0,fit_intercept=False,penalty='l2',random_state=0))])
+                     ('clf', SGD(loss='modified_huber'))])
 
 # gs_lr_tfidf = GridSearchCV(lr_tfidf, param_grid_2,
 #                            scoring='accuracy',

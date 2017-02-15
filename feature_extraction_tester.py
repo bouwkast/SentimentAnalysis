@@ -8,7 +8,7 @@ from nltk.tokenize import word_tokenize, wordpunct_tokenize
 import nltk
 import numpy as np
 import pandas as pd
-
+import re
 #  Try to not run it on the whole dataframe - only the first 10 are necessary
 # Read in the dataset and store in a pandas dataframe
 df = pd.read_csv('./training_movie_data_cleaned.csv')
@@ -32,6 +32,7 @@ print(stop_words)  # to visually see what we are going to remove
 
 def remove_stop_words(text):
     #  let's tokenize everything before we stem it
+
     normal_tokens = word_tokenize(text)
     print('Normal Tokenizer: ' + str(normal_tokens) + '\n')
     word_punct = wordpunct_tokenize(text)
