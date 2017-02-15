@@ -80,7 +80,7 @@ if __name__ == '__main__':
 
     tfidf = TfidfVectorizer(strip_accents='unicode',
                             analyzer='word',
-                            stop_words='english',
+                            stop_words=None,
                             lowercase=False,
                             preprocessor=preprocessor,
                             tokenizer=tokenizer,
