@@ -12,7 +12,8 @@ import re
 
 from sklearn.grid_search import GridSearchCV
 from sklearn.pipeline import Pipeline
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegression, LogisticRegressionCV, SGDRegressor
+
 from sklearn.feature_extraction.text import TfidfVectorizer
 from nltk.tokenize import word_tokenize, wordpunct_tokenize
 from sklearn.naive_bayes import GaussianNB
@@ -84,10 +85,12 @@ if __name__ == '__main__':
                             lowercase=False,
                             preprocessor=preprocessor,
                             tokenizer=tokenizer,
-                            max_df=.95,
-                            max_features=50000,
+                            max_df=.9,
+                            max_features=75000,
                             sublinear_tf=True,
                             ngram_range=(1, 3))
+
+    # exit(0)
 
     # Hint: There are methods to perform parameter sweeps to find the
     # best combination of parameters.  Look towards GridSearchCV in
@@ -114,26 +117,37 @@ if __name__ == '__main__':
     #                'clf__C': [1.0, 10.0, 100.0]},
     #               ]
     # TODO - only choose one of the parameter grids at a time
-    # param_grid_2 = [{'clf__penalty': ['l1', 'l2']}]
+    param_grid_2 = [{'vect__binary': [True, False]
+                     }]
 
     #  http://scikit-learn.org/stable/auto_examples/linear_model/plot_logistic_l1_l2_sparsity.html
     #  Above link for info on the value C in the classifier (clf)
 
-    # TODO - don't comment this out
+    # LIST OF BEST PARAMS FOR SGC:
+    #   loss = 'modified_huber' SCORE = 0.906
+    #   penalty = 'l2' SCORE = 0.906; this is the default value
+    #   alpha = 0.00015 SCORE = 0.906; default is 0.0001 gets a 0.906 too
+    #   n_iter = 10 SCORE = 0.907; default is 5 - this is the number of epochs
+    #   SGD max score is 0.907
+    # TODO - don't comment this out - unless you want to change the classifier
     lr_tfidf = Pipeline([('vect', tfidf),
-                         ('clf', SGD(loss='modified_huber'))])
+                         ('clf', SGD(loss='modified_huber', alpha=0.00015, n_iter=10))])
+
+    # TODO - was using this one as a test classifier (ie changing the classifier)
+    # lr_tfidf = Pipeline([('vect', tfidf),
+    #                      ('clf', SGDRegressor(loss='huber'))])
 
     # TODO - uncomment this to run the grid search with cross validation
     # gs_lr_tfidf = GridSearchCV(lr_tfidf, param_grid_2,
     #                            scoring='accuracy',
     #                            cv=5,
     #                            verbose=1,
-    #                            n_jobs=-1)  # how many cores to run on - this gets all of them
-
-
-    # TODO - ucomment this to run the grid search
-    # gs_lr_tfidf.fit(X_train, y_train)
+    #                            n_jobs=6)  # how many cores to run on - this gets all of them
     #
+    #
+    # # TODO - ucnomment this to run the grid search
+    # gs_lr_tfidf.fit(X_train, y_train)
+
     # print('BEST PARAM: ')
     # print(gs_lr_tfidf.best_params_)
     #
@@ -141,11 +155,11 @@ if __name__ == '__main__':
     #
     # clf = gs_lr_tfidf.best_estimator_
     # print('Test Accuracy: %.3f' % clf.score(X_test, y_test))
-
+    #
     # pickle.dump(clf, open('saved_model.sav', 'wb'))
     # TODO - end of uncommenting
 
-    #  TODO - comment out the following to run gridsearchcv
+    #  #  TODO - comment out the following to run gridsearchcv
     # # Train the pipline using the training set.
     lr_tfidf.fit(X_train, y_train)
     #
@@ -154,7 +168,7 @@ if __name__ == '__main__':
     #
     # # Save the classifier for use later.
     pickle.dump(lr_tfidf, open("saved_model.sav", 'wb'))
-    #  TODO - end of comment out the following for non gridsearch
+    #  #  TODO - end of comment out the following for non gridsearch
 
 
 
