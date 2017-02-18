@@ -48,13 +48,14 @@ def remove_stop_words(text):
     # After running - it seems like new_punct is the best
     return letters_only
 
-def tokenizer(text):
+def test_tokenizer(text):
     test = [porter_stem.stem(word) for word in text.split()]
     print('PORTER STEMMER: ' + str(test))
     return [porter_stem.stem(word) for word in text.split()]
 
+
 cleaned = remove_stop_words(test_review.lower())
-tokenizer(cleaned)
+test_tokenizer(cleaned)
 # porter_stem.stem('oed')
 
 

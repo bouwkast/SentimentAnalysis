@@ -13,10 +13,17 @@ import numpy as np
 from html.parser import HTMLParser
 import pickle
 import pandas as pd
+import re
+
 from bs4 import BeautifulSoup
 
 
+
 #  This uses the python HTLMParser to find and remove all HTML elements from our data
+from nltk import PorterStemmer, wordpunct_tokenize
+from nltk.corpus import stopwords
+
+
 class MyHTMLParser(HTMLParser):
     def error(self, message):
         pass
@@ -41,7 +48,25 @@ class MyHTMLParser(HTMLParser):
 # TODO - not sure if periods are being counted as a word eg ('word.' or '.' might be a word) not sure
 
 # parser = MyHTMLParser()
+porter_stem = PorterStemmer()
 
+stop_words = set(stopwords.words('english')).union({'.', 'I', 'i', ',', '\'', 'it', '*', '?', '/', '-', '&', '<', '>', '\"', ':'})
+
+def tokenizer(text):
+    new_text =  [porter_stem.stem(word) for word in text.split()]
+    return ' '.join(new_text)
+
+
+def preprocessor(text):
+    #  let's tokenize everything before we stem it
+    # TODO - changing text.lower() seemed to reduce accuracy by .2%
+    new_text = re.sub("[^a-zA-Z]", " ", text.lower())
+    word_punct = wordpunct_tokenize(new_text)
+    new_punct = [word for word in word_punct if word not in stop_words]
+    output = ' '.join(new_punct)
+
+    # After running - it seems like new_punct is the best
+    return output
 
 # going to replace the ignore_sequence with a SPACE
 # we will separate each word out into a frequency histogram
@@ -173,8 +198,48 @@ def create_integer_encoding(filename):
             next(reader)
 
 
+def readme_examples(filename):
+    """
+    Help to show what we are doing in for the GitHub README
+    :param filename: name of the file that we want to clean
+    :return: the final clean data
+    """
+
+    # read data set into a pandas dataframe
+    df = pd.read_csv(filename, encoding='utf-8', keep_default_na=True)
+
+    test_review = df['review'][15]
+    print('Raw: ' + test_review)
+    parser = MyHTMLParser()
+    parser.feed(test_review)
+    test_review = parser.get_data()
+    print('HTML removed: ' + test_review)
+
+    no_unknown = ''
+    # check to make sure ascii value is within the range
+    for character in test_review:
+        if ord(character) < 128:
+            no_unknown += character
+
+    print('Foreign characters removed: ' + no_unknown)
+
+    no_stop_words = preprocessor(no_unknown)
+
+    print('All stopwords gone: ' + no_stop_words)
+
+    # last step is to tokenize
+    tokenized = tokenizer(no_stop_words)
+
+    print(tokenized)
+
+
+
+
+
+
+
 # get_frequent_words('training_movie_data.csv')
 # create_frequency_hist('word_frequency')
-remove_unknown('training_movie_data.csv')
-
+# remove_unknown('training_movie_data.csv')
+readme_examples('training_movie_data.csv')
 # print(type('Â'))

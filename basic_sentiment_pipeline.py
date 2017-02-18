@@ -11,6 +11,7 @@ import numpy as np
 import re
 
 from sklearn.grid_search import GridSearchCV
+from sklearn.linear_model import LassoCV
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression, LogisticRegressionCV, SGDRegressor
 
@@ -35,6 +36,8 @@ from sklearn.linear_model import SGDClassifier as SGD
     
     Hint: Perhaps implement others such as PorterStemming
     Hint: Is this even used?  Where would you place it?
+
+    Yeah PorterStemming decreases accuracy by .2% for some stupid reason.
 """
 
 porter_stem = PorterStemmer()
@@ -43,17 +46,17 @@ stop_words = set(stopwords.words('english')).union({'.', 'I', 'i', ',', '\'', 'i
 
 
 def tokenizer(text):
-    return [porter_stem.stem(word) for word in text.split()]
+    return text.split()
+    # return [porter_stem.stem(word) for word in text.split()]
 
+# stop words reduces accuracy
 def preprocessor(text):
-    #  let's tokenize everything before we stem it
-    # TODO - changing text.lower() seemed to reduce accuracy by .2%
-    word_punct = wordpunct_tokenize(text.lower())
-    new_punct = [word for word in word_punct if word not in stop_words]
-    output = ' '.join(new_punct)
-    # letters_only = re.sub("[^a-zA-Z]", " ", output)  # TODO - removing digits decreases accuracy for some reason
-    # After running - it seems like new_punct is the best
-    return output
+    new_text = re.sub("[^a-zA-Z]", " ", text.lower())
+    # word_punct = wordpunct_tokenize(new_text)
+    # new_punct = [word for word in word_punct if word not in stop_words]
+    # output = ' '.join(new_punct)
+    return new_text
+    # return output
 
 # this is to protect for running multiple jobs for gridsearchcv
 if __name__ == '__main__':
@@ -69,7 +72,8 @@ if __name__ == '__main__':
     # Hint: This might be an area to change the size
     # of your training and test sets for improved
     # predictive performance.
-    training_size = 37500
+    training_size = 40000
+
     X_train = df.loc[:training_size, 'review'].values.astype('U')
     y_train = df.loc[:training_size, 'sentiment'].values
     X_test = df.loc[training_size:, 'review'].values.astype('U')
@@ -86,9 +90,10 @@ if __name__ == '__main__':
                             preprocessor=preprocessor,
                             tokenizer=tokenizer,
                             max_df=.9,
-                            max_features=75000,
+
+                            max_features=100000,
                             sublinear_tf=True,
-                            ngram_range=(1, 3))
+                            ngram_range=(1, 2))
 
     # exit(0)
 
@@ -117,7 +122,11 @@ if __name__ == '__main__':
     #                'clf__C': [1.0, 10.0, 100.0]},
     #               ]
     # TODO - only choose one of the parameter grids at a time
-    param_grid_2 = [{'vect__binary': [True, False]
+    param_grid_2 = [{'clf__penalty': ['l2', 'l1', 'elasticnet'],
+                     'clf__l1_ratio': [0.05, 0.15, 0.35, 0.5],
+                     'clf__fit_intercept': [True, False],
+                     'clf__shuffle': [True, False],
+                     'clf__learning_rate': ['optimal']
                      }]
 
     #  http://scikit-learn.org/stable/auto_examples/linear_model/plot_logistic_l1_l2_sparsity.html
@@ -131,13 +140,13 @@ if __name__ == '__main__':
     #   SGD max score is 0.907
     # TODO - don't comment this out - unless you want to change the classifier
     lr_tfidf = Pipeline([('vect', tfidf),
-                         ('clf', SGD(loss='modified_huber', alpha=0.00015, n_iter=10))])
+                         ('clf', SGD(loss='modified_huber', alpha=0.00015, n_iter=20, random_state=5, l1_ratio=0.05, penalty='l2', shuffle=False, learning_rate='optimal'))])
 
     # TODO - was using this one as a test classifier (ie changing the classifier)
     # lr_tfidf = Pipeline([('vect', tfidf),
-    #                      ('clf', SGDRegressor(loss='huber'))])
+    #                      ('clf', LassoCV(max_iter=20))])
 
-    # TODO - uncomment this to run the grid search with cross validation
+    # # TODO - uncomment this to run the grid search with cross validation
     # gs_lr_tfidf = GridSearchCV(lr_tfidf, param_grid_2,
     #                            scoring='accuracy',
     #                            cv=5,
@@ -147,7 +156,7 @@ if __name__ == '__main__':
     #
     # # TODO - ucnomment this to run the grid search
     # gs_lr_tfidf.fit(X_train, y_train)
-
+    #
     # print('BEST PARAM: ')
     # print(gs_lr_tfidf.best_params_)
     #
@@ -157,7 +166,7 @@ if __name__ == '__main__':
     # print('Test Accuracy: %.3f' % clf.score(X_test, y_test))
     #
     # pickle.dump(clf, open('saved_model.sav', 'wb'))
-    # TODO - end of uncommenting
+    # # TODO - end of uncommenting
 
     #  #  TODO - comment out the following to run gridsearchcv
     # # Train the pipline using the training set.
