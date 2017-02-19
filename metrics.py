@@ -53,7 +53,7 @@ porter_stem = PorterStemmer()
 stop_words = set(stopwords.words('english')).union({'.', 'I', 'i', ',', '\'', 'it', '*', '?', '/', '-', '&', '<', '>', '\"', ':'})
 
 def tokenizer(text):
-    new_text =  [porter_stem.stem(word) for word in text.split()]
+    new_text = [porter_stem.stem(word) for word in text.lower().split()]
     return ' '.join(new_text)
 
 
@@ -61,12 +61,29 @@ def preprocessor(text):
     #  let's tokenize everything before we stem it
     # TODO - changing text.lower() seemed to reduce accuracy by .2%
     new_text = re.sub("[^a-zA-Z]", " ", text.lower())
-    word_punct = wordpunct_tokenize(new_text)
-    new_punct = [word for word in word_punct if word not in stop_words]
-    output = ' '.join(new_punct)
-
+    # word_punct = wordpunct_tokenize(new_text)
+    # new_punct = [word for word in word_punct if word not in stop_words]
+    # output = ' '.join(new_punct)
+    #
+    return new_text
     # After running - it seems like new_punct is the best
-    return output
+    # return output
+
+
+def clean_clean_data(filename):
+    file = filename.split('.')
+    file[0] += '_cleaned'
+
+    file = '.'.join(file)  # taking our input data and splicing 'cleaned' onto it
+    #  TODO - need to use df.drop() somehow to remove unknown characters (I think)
+    df = pd.read_csv(filename, encoding='utf-8', keep_default_na=True)
+    for i in range(0, len(df)):
+        print('currently at', i)
+        row = preprocessor(df['review'][i])
+        row = tokenizer(row)
+        df.set_value(i, 'review', row)
+
+    df.to_csv(path_or_buf=file, index=False, encoding='utf-8', na_rep=' ')
 
 # going to replace the ignore_sequence with a SPACE
 # we will separate each word out into a frequency histogram
@@ -241,5 +258,6 @@ def readme_examples(filename):
 # get_frequent_words('training_movie_data.csv')
 # create_frequency_hist('word_frequency')
 # remove_unknown('training_movie_data.csv')
-readme_examples('training_movie_data.csv')
+# readme_examples('training_movie_data.csv')
 # print(type('Â'))
+clean_clean_data('training_movie_data_cleaned.csv')

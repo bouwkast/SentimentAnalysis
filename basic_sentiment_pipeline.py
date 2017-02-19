@@ -61,12 +61,9 @@ def preprocessor(text):
 if __name__ == '__main__':
     # Read in the dataset and store in a pandas dataframe
     df = pd.read_csv('./training_movie_data_cleaned.csv')
-    magic_number = 5233  # this is a magic number, that is all
+    magic_number = np.random.randint(low=0, high=100000)  # randomly seed our rng
     np.random.seed(magic_number)  # seed for reproducibility
     df = df.reindex(np.random.permutation(df.index))  # 'shuffle' the dataset
-
-    training_size = 20000  # training size seems to be best at 20K
-    # TODO - with KFold we won't need this - train on all data soon
 
     skf = StratifiedKFold(n_splits=10)  # 10 is a very common/standard split ratio
 
@@ -75,18 +72,12 @@ if __name__ == '__main__':
 
     skf.get_n_splits(X, y)  # make n_splits for cross validation
 
-    #  TODO - these aren't needed
-    X_train = df.loc[:training_size, 'review'].values.astype('U')
-    y_train = df.loc[:training_size, 'sentiment'].values
-    X_test = df.loc[training_size:, 'review'].values.astype('U')
-    y_test = df.loc[training_size:, 'sentiment'].values
-
     #  After a lot of GridSearching these seem to be the best
     tfidf = TfidfVectorizer(strip_accents='unicode',
                             analyzer='word',
                             stop_words=None,
                             lowercase=False,
-                            preprocessor=preprocessor,
+                            preprocessor=None,
                             tokenizer=tokenizer,
                             max_df=.05,
                             min_df=2,
@@ -99,7 +90,7 @@ if __name__ == '__main__':
 
     # TODO - don't comment this out - unless you want to change the classifier
     lr_tfidf = Pipeline([('vect', tfidf),
-                         ('clf', SGD(loss='modified_huber', alpha=0.00015, n_iter=np.ceil(10 ** 6 / training_size),
+                         ('clf', SGD(loss='modified_huber', alpha=0.00015, n_iter=np.ceil(10 ** 6 / len(df['review'])),
                                      random_state=5, l1_ratio=0.05, penalty='l2', shuffle=False,
                                      learning_rate='optimal'))])
 
@@ -129,7 +120,8 @@ if __name__ == '__main__':
     # # Train the pipline using the training set.
 
     # Train n_fold different models on each kfold and see how they perform
-    scores = cross_val_score(lr_tfidf, X, y, cv=skf)
+    # TODO WARNING! change n_jobs to how many cores to run on
+    scores = cross_val_score(lr_tfidf, X, y, cv=skf, verbose=2, n_jobs=5)
     print(scores)
     #  After we cross validate to ensure that the model can predict unseen data - train on everything
     lr_tfidf.fit(X, y)
