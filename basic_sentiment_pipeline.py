@@ -50,7 +50,7 @@ def tokenizer(text):
 # stop words reduces accuracy
 def preprocessor(text):
     new_text = re.sub("[^a-zA-Z]", " ", text.lower())
-    # word_punct = wordpunct_tokenize(new_text)
+    # word_punct = wordpunct_tokenize(text.lower())
     # new_punct = [word for word in word_punct if word not in stop_words]
     # output = ' '.join(new_punct)
     return new_text
@@ -121,7 +121,7 @@ if __name__ == '__main__':
 
     # Train n_fold different models on each kfold and see how they perform
     # TODO WARNING! change n_jobs to how many cores to run on
-    scores = cross_val_score(lr_tfidf, X, y, cv=skf, verbose=2, n_jobs=5)
+    scores = cross_val_score(lr_tfidf, X, y, cv=skf, verbose=2, n_jobs=2)
     print(scores)
     #  After we cross validate to ensure that the model can predict unseen data - train on everything
     lr_tfidf.fit(X, y)

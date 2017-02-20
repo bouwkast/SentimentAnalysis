@@ -94,7 +94,7 @@ cleaned review and create a count of each word.
 ### Tweaking the Preprocessing step
 
 As with many things in life there exists a good balance between everything. For this 
-project one can run into the issue of preprocessing out too much information - losing 
+project you can run into the issue of preprocessing out too much information - losing 
 some of the underlying meaning that sits in the data. 
 
 All of this preprocessing got us a much higher accuracy while considering each word
@@ -133,7 +133,8 @@ is given to funny for being a positive term is overshadowed by the negative weig
 that is given to the phrase 'not funny'
 
 By including bigrams we are able to more accurately predict whether the review
-is positive or negative.
+is positive or negative - however we had to put the stop words back in and could no
+longer stem the data.
 
 
 ## Conclusion of Preprocessing
@@ -147,6 +148,47 @@ to keep all of the words in the original review to retain more meaning.
 
 Now we'll venture into the different types of algorithms that we tried and our
 results with each.
+
+## Regularization with TfidfVectorizer
+
+One key way to mitigate overfitting of data when training models with machine learning
+is to both convert your data into pure numbers and to regularize it (basically have a
+small range).
+
+Scikit-Learn's TfidfVectorizer does both of these for us. 
+Tf-idf stands for **term frequency - inverse document frequency** and is used for 
+reflecting how important a word is. It keeps track of how many times a word appears
+in the review and offset that by how common that word is throughout all reviews.
+
+To do this, the TfidfVectorizer creates a count of every single unique word in a
+review then how common the word is throughout all other reviews and take
+the inverse of that - both terms would then be multiplied together
+ (term frequency X inverse of the document frequency).
+ 
+This would give us a large range of varying values - uncommon words would have a score
+that sits near 0 while more common scores would have a score much greater.
+If we were to put these values into our model for training we would most likely
+overfit our model - since the values aren't generalized it learns a lot of the
+*background noise* - it might work really well for the training data, but probably
+won't have good prediction capabilities on unseen data.
+
+L2 normalization is one of the many methods that can solve this and the TfidfVectorizer
+does this automatically. An easy way to understand this is applying Occam's razor to the 
+problem - if there is two explanations, the simpler one is usually better. 
+
+How does this help us? 
+
+and 
+
+How does L2 normalization work?
+
+Both of these can be answered quite simply. We want our model to be general enough
+that it can consistently predict unseen data accurately. One of the causes of overfitting
+data is that your model becomes to complex - the weights you put on each feature 
+
+
+
+
 
 ## Classification Algorithms Tested w/ Results
 
@@ -162,5 +204,6 @@ the data.
 
 [Here's a good explanation of the algorithm](http://scikit-learn.org/stable/modules/linear_model.html#logistic-regression)
 
-
+Logistic regression seemed relatively well - and with some parameter tuning we were able to
+get around an average of 89% accuracy.
 NOT DONE
