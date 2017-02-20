@@ -13,32 +13,35 @@ import re
 # Read in the dataset and store in a pandas dataframe
 df = pd.read_csv('./training_movie_data_cleaned.csv')
 print(df.head(5))
-# print(df.index)
-np.random.seed(0)  # seed for reproducibility COMMENT OUT TO REMOVE RANDOMIZATION
-# TODO - actually not sure what I'm doing wrong because the randomization doesn't seem to work
-df = df.reindex(np.random.permutation(df.index))  # COMMENT OUT TO REMOVE RANDOMIZATION
-# print(df.index)
+np.random.seed(0)  # seed for reproducibility
+
+df = df.reindex(np.random.permutation(df.index))
+
 print(df.head(5))
 to_remove = {'and', 'or', 'i', 'be', 'a'}
-# let's specify what other type of words we want removed
-test_review = df['review'][31]  # this will be different each time because we are shuffling the indices
+# Let's specify what other type of words we want removed
+test_review = df['review'][31]  # This will be different each time because we are shuffling the indices
 print('INITIAL REVIEW: \n' + test_review + '\n')
 porter_stem = PorterStemmer()
 nltk.download('punkt')
-# this one we are removing pretty much all punctuation TODO is this too much?
+# Removes almost all punctuation
 stop_words = set(stopwords.words('english')).union({'.', 'I', 'i', ',', '\'', 'it', '*'})
-# stop_words = set(stopwords.words('english'))  # This is the default set of stopwords to remove
+
 print(stop_words)  # to visually see what we are going to remove
 
 def remove_stop_words(text):
-    #  let's tokenize everything before we stem it
+    #  Tokenizes everything before we stem it
 
+    # Prints the initial tokenized text.
     normal_tokens = word_tokenize(text)
     print('Normal Tokenizer: ' + str(normal_tokens) + '\n')
+    # Print the tokenized text, but with all the punctuation separated from words.
     word_punct = wordpunct_tokenize(text)
     print('Word Punct Tokenizer: ' + str(word_punct) + '\n')
+    # Prints the tokenized text, but removes all stop-words like "is" and "and."
     new_normal = [word for word in normal_tokens if word not in stop_words]
     print('New Normal Text: ' + str(new_normal) + '\n')
+    # Prints the tokenized text with stop-words removed,, and with all punctuation separated from the words.
     new_punct = [word for word in word_punct if word not in stop_words]
     print('New Punct Text: ' + str(new_punct) + '\n')
 
@@ -48,6 +51,7 @@ def remove_stop_words(text):
     # After running - it seems like new_punct is the best
     return letters_only
 
+# Prints the final string after it's been run through the above methods to remove punctuation and stop-words.
 def test_tokenizer(text):
     test = [porter_stem.stem(word) for word in text.split()]
     print('PORTER STEMMER: ' + str(test))
@@ -56,6 +60,5 @@ def test_tokenizer(text):
 
 cleaned = remove_stop_words(test_review.lower())
 test_tokenizer(cleaned)
-# porter_stem.stem('oed')
 
 

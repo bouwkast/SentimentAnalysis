@@ -23,7 +23,7 @@ from bs4 import BeautifulSoup
 from nltk import PorterStemmer, wordpunct_tokenize
 from nltk.corpus import stopwords
 
-
+# Parses through the data to remove any HTML code that would cause errors with checking the data.
 class MyHTMLParser(HTMLParser):
     def error(self, message):
         pass
@@ -44,73 +44,24 @@ class MyHTMLParser(HTMLParser):
     def get_data(self):
         return ' '.join(self.fed)
 
-
-# TODO - not sure if periods are being counted as a word eg ('word.' or '.' might be a word) not sure
-
-# parser = MyHTMLParser()
+# Removes the suffixes of words so they'll be read along with their root word.
+# For example, "run," "running," and "runner" are all treated as the same word.
 porter_stem = PorterStemmer()
 
+# Sets the list of words to ignore in terms of sentiment analysis. Starts with a pre-determined set of words,
+# and then we personally add more; "I", "it," and various bits of punctuation.
 stop_words = set(stopwords.words('english')).union({'.', 'I', 'i', ',', '\'', 'it', '*', '?', '/', '-', '&', '<', '>', '\"', ':'})
 
+# Returns the text as a series of tokens.
 def tokenizer(text):
     new_text = [porter_stem.stem(word) for word in text.lower().split()]
     return ' '.join(new_text)
 
 
+# Tokenizes everything before we stem it, and returns paranoid
 def preprocessor(text):
-    #  let's tokenize everything before we stem it
-    # TODO - changing text.lower() seemed to reduce accuracy by .2%
     new_text = re.sub("[^a-zA-Z]", " ", text.lower())
-    # word_punct = wordpunct_tokenize(new_text)
-    # new_punct = [word for word in word_punct if word not in stop_words]
-    # output = ' '.join(new_punct)
-    #
     return new_text
-    # After running - it seems like new_punct is the best
-    # return output
-
-
-def clean_clean_data(filename):
-    file = filename.split('.')
-    file[0] += '_cleaned'
-
-    file = '.'.join(file)  # taking our input data and splicing 'cleaned' onto it
-    #  TODO - need to use df.drop() somehow to remove unknown characters (I think)
-    df = pd.read_csv(filename, encoding='utf-8', keep_default_na=True)
-    for i in range(0, len(df)):
-        print('currently at', i)
-        row = preprocessor(df['review'][i])
-        row = tokenizer(row)
-        df.set_value(i, 'review', row)
-
-    df.to_csv(path_or_buf=file, index=False, encoding='utf-8', na_rep=' ')
-
-# going to replace the ignore_sequence with a SPACE
-# we will separate each word out into a frequency histogram
-
-# def get_frequent_words(filename):
-#     word_freq = {}
-#     with open(filename, newline='') as csvfile:
-#         reader = csv.reader(csvfile)  # skip first line
-#         next(reader)
-#
-#         try:
-#             for row in reader:
-#                 review = row[0]
-#                 parser.feed(review)  # take the review and give it to the html parser
-#                 review = parser.get_data()  # grab the data from the parser
-#                 review = review.lower().split()  # turn everything into lower case - split each word into list
-#                 for word in review:
-#                     if word in word_freq:
-#                         word_freq[word] += 1  # if the word is already there - increment its count by 1
-#                     else:
-#                         word_freq[word] = 1  # if the word is not in the dictionary add it
-#
-#             freq_file = open('word_frequency', 'wb')
-#             pickle.dump(word_freq, freq_file)  # pickling our dictionary for later use
-#
-#         except UnicodeDecodeError:  # some characters we can't decode in the given dataset
-#             next(reader)
 
 
 def create_review_len_hist(filename):
@@ -133,10 +84,9 @@ def create_review_len_hist(filename):
     #  we are making a histogram
     plt.show()
 
-
+# Takes a pickled dictionary and create a histogram of word frequencies
 def create_frequency_hist(filename):
     """
-    Takes a pickled dictionary and create a histogram of word frequencies
     :param filename: is the pickled dictionary
     :return: an image of the histogram
     """
@@ -147,19 +97,17 @@ def create_frequency_hist(filename):
     bins = np.arange(0, 750, 50)
     plt.xlim(0, 800)
 
-    # plt.bar(len(word_dict), word_dict.values(), align='center')
     plt.bar(x, y, width=100)
     plt.xticks(x, word_dict.keys(), rotation='vertical')
     plt.title('Unique words used in reviews and their counts')
     plt.xlabel('Word')
     plt.ylabel('count')
-    #  we are making a histogram
+
     plt.show()
 
-
+# Write a csv file of the cleaned file by removing HTML and unknown characters.
 def remove_unknown(filename):
     """
-    Write a csv file of the cleaned file by removing HTML and unknown characters.
     :param filename: is the name of the file to clean
     :return: None - writes to csv file the clean data
     """
@@ -171,11 +119,6 @@ def remove_unknown(filename):
     df = pd.read_csv(filename, encoding='utf-8', keep_default_na=True)
 
     for i in range(0, len(df)):
-        # print(df['review'][i])
-        # souper = BeautifulSoup(df['review'][i])
-        # row = souper.get_text
-        # print(row)
-        # break
         parser = MyHTMLParser()
         parser.feed(df['review'][i])
         row = parser.get_data()
@@ -187,11 +130,8 @@ def remove_unknown(filename):
         parser.clear_data()
 
     df.to_csv(path_or_buf=file, index=False, encoding='utf-8', na_rep=' ')
-    # print(df.loc[0, 'review'].values)
 
 
-
-# TODO - this is not complete or working
 def create_integer_encoding(filename):
     """
     Return a dictionary with the key as the word and the value is its popularity
@@ -222,7 +162,7 @@ def readme_examples(filename):
     :return: the final clean data
     """
 
-    # read data set into a pandas dataframe
+    # Read data set into a pandas dataframe.
     df = pd.read_csv(filename, encoding='utf-8', keep_default_na=True)
 
     test_review = df['review'][15]
@@ -233,7 +173,7 @@ def readme_examples(filename):
     print('HTML removed: ' + test_review)
 
     no_unknown = ''
-    # check to make sure ascii value is within the range
+    # Check to make sure ASCII value is within range.
     for character in test_review:
         if ord(character) < 128:
             no_unknown += character
@@ -244,20 +184,6 @@ def readme_examples(filename):
 
     print('All stopwords gone: ' + no_stop_words)
 
-    # last step is to tokenize
+    # Last step is to tokenize, and return.
     tokenized = tokenizer(no_stop_words)
-
     print(tokenized)
-
-
-
-
-
-
-
-# get_frequent_words('training_movie_data.csv')
-# create_frequency_hist('word_frequency')
-# remove_unknown('training_movie_data.csv')
-# readme_examples('training_movie_data.csv')
-# print(type('Â'))
-clean_clean_data('training_movie_data_cleaned.csv')
