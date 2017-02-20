@@ -1,22 +1,38 @@
 """
-    Train a stochastic gradient descent model for movie review classification.
+    Author(s): Steven Bouwkamp, Andy Vuong, and Matt Schuch
+    Dataset used: 45K IMDB movie reviews with either a 0 as having a negative sentiment or a 1 having
+                    a positive sentiment.
+    Average Accuracy Obtained: 91.5%
+    
+    Trains a model to be able to predict whether a given movie review is positive
+    or negative with around a 91.5% accuracy.
 
+    It utilizes scikit-learn's TfidfVectorizer to transform reviews into a Bag of Words encoding
+    and then applies an L2 regularization formula to all of the values. Through extensive
+    parameter searching we've been able to tune it to solve decently solve this problem.
+
+    After this step, a Pipeline is built with TfidfVectorizer with a Stochastic Gradient Descent (SGD)
+    algorithm as the classification algorithm. The benefit from using SGD as our classifier was being able
+    to test out different loss functions that would handle outliers better than standard log loss.
+
+    To ensure that we aren't overfitting our model we have regularization done by the TfidifVectorizer
+    and also cross-validate on 10 folds to get a rough estimate for how well the model will predict
+    unseen data.
+
+    At the end, we are able to train on all of the data that we have available based off of relatively
+    decent results from the cross-validation scores.
 """
 
-# TODO - finish commenting this file
+
 # TODO - clean up the other helper files (need to turn in most likely)
-# TODO - maybe run some final GridSearchCVs - don't have to if don't want to
 # TODO - remove print statements of the cross validation scores
 # TODO - maybe make a logger? might help for overall completeness
-# TODO - don't remove gridsearchcv - keep it there as a reference for how we calculated parameters
-# TODO - don't remove porterstemmer or wordpunct - good ideas just they got trumped by bigrams
+
 # TODO - WRITE UP
 # TODO - finish the README
 
 
 # TODO - ON FEB 22nd turn repo to public (unless people haven't turned in)
-
-
 
 
 import pandas as pd
@@ -33,22 +49,50 @@ from nltk.corpus import stopwords
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 from sklearn.linear_model import SGDClassifier as SGD
 
-#  porter stemming decreases accuracy by .2%
+#  porter stemming seemed to reduce our accuracy by around .1-.5%
+#  think it has to do with how it handles contractions
 porter_stem = PorterStemmer()
 
-#  these are the default stopwords along with some added punctuation - no longer used.
+#  these are the default stopwords along with some added punctuation
+#  no longer use this due to the addition of bigrams
+#  by removing stop words we could potentially change the actual meaning of the review
 stop_words = set(stopwords.words('english')).union(
     {'.', 'I', 'i', ',', '\'', 'it', '*', '?', '/', '-', '&', '<', '>', '\"'})
+
 
 # The commented out lines for tokenizer and preprocessor are the more 'advanced'
 # preprocessing steps - but they lower accuracy, so the basic ones are in there instead.
 
+
 def tokenizer(text):
+    """
+    Return a list of words
+
+    When stemming the words we found that it would consistently reduce our accuracy that
+    we were able to achieve.
+    :param text: is the String to split on spaces
+    :return: a list containing all of the individual words that were in the String
+    """
     return text.split()
     # return [porter_stem.stem(word) for word in text.split()]
 
-# stop words reduces accuracy
+
 def preprocessor(text):
+    """
+    Return a String that only contains the characters 'a' to 'z' and 'A' to 'Z'
+
+    Originally, we would use wordpunct to tokenize the input review String -
+    it would then check to see if each element in the list was in our set of stopwords.
+    If it was in the set - it would be removed.
+
+    This actually reduced our accuracy that we were able to get - through cross-validation
+    we averaged around 2% lower than without it.
+
+    We think that the reason why this was happening is because we used bigrams as an
+    additional feature - removing words actually changed the meaning of these.
+    :param text: is the String containing the movie review to process
+    :return: the processed String
+    """
     new_text = re.sub("[^a-zA-Z]", " ", text.lower())
     # word_punct = wordpunct_tokenize(text.lower())
     # new_punct = [word for word in word_punct if word not in stop_words]
@@ -57,14 +101,17 @@ def preprocessor(text):
     # return output
 
 
-# this is to protect for running multiple jobs for gridsearchcv
+# this is to protect for running multiple jobs for gridsearchcv when on Windows
 if __name__ == '__main__':
     # Read in the dataset and store in a pandas dataframe
     df = pd.read_csv('./training_movie_data_cleaned.csv')
-    magic_number = np.random.randint(low=0, high=100000)  # randomly seed our rng
-    np.random.seed(magic_number)  # seed for reproducibility
+    #  we could print out the seed_int so we could use it on later runs
+    seed_int = np.random.randint(low=0, high=100000)  # randomly seed our rng
+    np.random.seed(seed_int)  # seed for reproducibility
     df = df.reindex(np.random.permutation(df.index))  # 'shuffle' the dataset
 
+    #  we have binary data (0 = negative, 1 = positive)
+    #  split it with 10 folds for us to use in cross-validation
     skf = StratifiedKFold(n_splits=10)  # 10 is a very common/standard split ratio
 
     X = df['review'].values.astype('U')  # reviews
@@ -73,6 +120,7 @@ if __name__ == '__main__':
     skf.get_n_splits(X, y)  # make n_splits for cross validation
 
     #  After a lot of GridSearching these seem to be the best
+    #  further explanation in write-up and on GitHub README (public after due data)
     tfidf = TfidfVectorizer(strip_accents='unicode',
                             analyzer='word',
                             stop_words=None,
@@ -85,16 +133,21 @@ if __name__ == '__main__':
                             sublinear_tf=True,
                             ngram_range=(1, 2))
 
-    # TODO - only choose one of the parameter grids at a time
+    #  This is an example of our parameter grid that we would use for searching
+    #  It was found that sometimes having a really large parameter grid took too long
+    #   to be useful (example 700+ fits would take more than an 3 hours running on 8 cores)
     param_grid_2 = [{'vect__max_df': [.75, .5, .1, .075]}]
 
-    # TODO - don't comment this out - unless you want to change the classifier
+    #  This is our pipeline to train the model with
+    #  We use a TfidfVectorizer and a Stochastic Gradient Descent Classifier
+    #  More information can be found in the write-up and on the GitHub README
     lr_tfidf = Pipeline([('vect', tfidf),
                          ('clf', SGD(loss='modified_huber', alpha=0.00015, n_iter=np.ceil(10 ** 6 / len(df['review'])),
                                      random_state=5, l1_ratio=0.05, penalty='l2', shuffle=False,
                                      learning_rate='optimal'))])
 
-    # # TODO - uncomment this to run the grid search with cross validation
+    #  Beginning of example for how we used GridSearchCV to find parameters
+    #  This is only here to showcase how we found parameters - it would use parameter_grid2 from above
     # gs_lr_tfidf = GridSearchCV(lr_tfidf, param_grid_2,
     #                            scoring='accuracy',
     #                            cv=5,
@@ -102,7 +155,7 @@ if __name__ == '__main__':
     #                            n_jobs=6)  # how many cores to run on - this gets all of them
     #
     #
-    # # TODO - ucnomment this to run the grid search
+    #
     # gs_lr_tfidf.fit(X_train, y_train)
     #
     # print('BEST PARAM: ')
@@ -114,37 +167,15 @@ if __name__ == '__main__':
     # print('Test Accuracy: %.3f' % clf.score(X_test, y_test))
     #
     # pickle.dump(clf, open('saved_model.sav', 'wb'))
-    # # TODO - end of uncommenting
-
-    #  #  TODO - comment out the following to run gridsearchcv
-    # # Train the pipline using the training set.
+    # # End of GridSearchCV example
 
     # Train n_fold different models on each kfold and see how they perform
-    # TODO WARNING! change n_jobs to how many cores to run on
     scores = cross_val_score(lr_tfidf, X, y, cv=skf, verbose=2, n_jobs=2)
-    print(scores)
+    # this is our average score of the models that we trained on with cross-validation
+    print(scores.mean())
+
     #  After we cross validate to ensure that the model can predict unseen data - train on everything
     lr_tfidf.fit(X, y)
 
-    # print('Test Accuracy: %.3f' % lr_tfidf.score(X_test, y_test))
-
-    # total = 0
-    # for train_index, test_index in skf.split(X, y):
-    #     print("TRAIN:", train_index, "TEST:", test_index)
-    #
-    #     X_train, X_test = X[train_index], X[test_index]
-    #     y_train, y_test = y[train_index], y[test_index]
-    #
-    #     lr_tfidf.fit(X_train, y_train)
-    #     print('Test Accuracy: %.3f' % lr_tfidf.score(X_test, y_test))
-    #     total += lr_tfidf.score(X_test, y_test)
-    # print(total / 10)
-    # print('end')
-
-    #
-    # # Print the Test Accuracy
-
-
     # Save the classifier for use later.
     pickle.dump(lr_tfidf, open("saved_model.sav", 'wb'))
-    #  TODO - end of comment out the following for non gridsearch
