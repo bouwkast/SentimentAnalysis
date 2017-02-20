@@ -79,7 +79,7 @@ if __name__ == '__main__':
                             lowercase=False,
                             preprocessor=preprocessor,
                             tokenizer=tokenizer,
-                            # max_df=.05,
+                            max_df=.05,
                             min_df=2,
                             max_features=80000,
                             sublinear_tf=True,
