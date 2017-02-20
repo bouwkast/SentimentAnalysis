@@ -184,11 +184,73 @@ How does L2 normalization work?
 
 Both of these can be answered quite simply. We want our model to be general enough
 that it can consistently predict unseen data accurately. One of the causes of overfitting
-data is that your model becomes to complex - the weights you put on each feature 
+your model is the model itself becomes too complex. The weights that are applied to each
+ feature (in this case words and bigrams like 'not' and 'not funny') determines the 
+model's complexity.
 
+What regularization does is pull everything in - those large weights that may cause 
+the model to overfit are reigned in. Since everything becomes more generalized the model 
+should have better predictive capabilities.
 
+### Tuning the Parameters of the TfidfVectorizer
 
+Here are all of the parameters that we changed for our TfidfVectorizer and what 
+impact they had on our model.
 
+**strip_accents='unicode'**
+
+Many of the reviews had foreign characters in them - while we removed most, if not all,
+during our initial cleaning of the data, this was here just in case.
+
+**analyzer='word'**
+
+This tells our model what the features are that it should be training on - for us
+we want it to look at words.
+
+**stop_words=None**
+
+Stop words are words like 'the', 'it', 'a' etc. At first we wanted this - it made sense at
+the time- however, as we made the shift of including both single words and bigrams as
+a feature, removing stop words actually changed the sentiment/meaning of the review.
+
+**lowercase=False**
+
+We transformed all reviews to lower case in our preprocessor - no need to do it twice.
+
+**preprocessor=preprocessor**
+
+Calls our preprocessor function that removes all punctuation and digits from the review.
+
+**tokenizer=tokenizer**
+
+Calls our tokenizer function that splits the preprocessed review into each distinct word.
+
+**max_df=.05**
+
+Means we would not consider/look at features or words that were seen in more than 5%
+of the documents - this allows us to look at less common features that most likely
+carry much more weight toward determining whether a review is positive or negative.
+
+**min_df=2**
+
+Means we would not consider/look at features that were only in a single review - this 
+helps us eliminate people who talk about specific actors/actresses and directors.
+
+**max_features=80000**
+
+Set an upper limit for how many features we want to look at - 80K was determined to be
+a pretty good parameter through extensive searching.
+
+**sublinear_tf=True**
+
+Speed up the process just a little
+
+**ngram_range=(1, 2)**
+
+This was found to be one of the most important parameters - this means that we are looking
+at single words and bigrams. An example of a bigram 'not funny', this allows the meaning
+of the negation of funny to be kept - without taking bigrams into account it would ONLY
+look at 'not' and 'funny' independently. Now it looks at all three.
 
 ## Classification Algorithms Tested w/ Results
 
