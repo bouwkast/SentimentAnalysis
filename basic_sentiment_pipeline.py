@@ -23,7 +23,6 @@
     decent results from the cross-validation scores.
 """
 
-
 # TODO - clean up the other helper files (need to turn in most likely)
 # TODO - remove print statements of the cross validation scores
 # TODO - maybe make a logger? might help for overall completeness
@@ -44,12 +43,41 @@ from sklearn.pipeline import Pipeline
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from nltk.tokenize import wordpunct_tokenize
+from html.parser import HTMLParser
 from nltk.stem.porter import PorterStemmer
 from nltk.corpus import stopwords
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 from sklearn.linear_model import SGDClassifier as SGD
 
-#  porter stemming seemed to reduce our accuracy by around .1-.5%
+
+class MyHTMLParser(HTMLParser):
+    """
+    This is a simple extension of Python's HTMLParser.
+    As it comes across data that is marked as being HTML it will
+    simply ignore it and replace it with a space.
+    """
+
+    def error(self, message):
+        pass
+
+    def __init__(self):
+        super().__init__()
+        self.reset()
+        self.strict = False
+        self.convert_charrefs = True
+        self.fed = []
+
+    def handle_data(self, data):
+        self.fed.append(data)
+
+    def clear_data(self):
+        self.fed = []
+
+    def get_data(self):
+        return ' '.join(self.fed)
+
+
+# porter stemming seemed to reduce our accuracy by around .1-.5%
 #  think it has to do with how it handles contractions
 porter_stem = PorterStemmer()
 
@@ -101,13 +129,41 @@ def preprocessor(text):
     # return output
 
 
+def remove_unknown(filename):
+    """
+    Take the given comma separated file and remove all HTML tags and
+    unknown characters and save the output to a new csv file.
+
+    Only needs to be called once before the first time ever training.
+    :param filename: is the name of the file to clean
+    :return: None - writes to csv file the clean data
+    """
+    file = filename.split('.')
+    file[0] += '_cleaned'
+
+    file = '.'.join(file)  # taking our input data and splicing 'cleaned' onto it
+    #  TODO - need to use df.drop() somehow to remove unknown characters (I think)
+    df = pd.read_csv(filename, encoding='utf-8', keep_default_na=True)
+
+    for i in range(0, len(df)):
+        parser = MyHTMLParser()
+        parser.feed(df['review'][i])
+        row = parser.get_data()
+        new_row = ''
+        for char in row:
+            if ord(char) < 128:
+                new_row += char
+        df.set_value(i, 'review', new_row)
+        parser.clear_data()
+
+    df.to_csv(path_or_buf=file, index=False, encoding='utf-8', na_rep=' ')
+
+
 # this is to protect for running multiple jobs for gridsearchcv when on Windows
 if __name__ == '__main__':
     # Read in the dataset and store in a pandas dataframe
-    df = pd.read_csv('./training_movie_data_cleaned.csv')
-    #  we could print out the seed_int so we could use it on later runs
-    seed_int = np.random.randint(low=0, high=100000)  # randomly seed our rng
-    np.random.seed(seed_int)  # seed for reproducibility
+    df = pd.read_csv('./training_movie_data_cleaned.csv')  # this file isn't the original - it is the cleaned version
+    np.random.seed()  # randomize our seed
     df = df.reindex(np.random.permutation(df.index))  # 'shuffle' the dataset
 
     #  we have binary data (0 = negative, 1 = positive)
@@ -143,8 +199,7 @@ if __name__ == '__main__':
     #  More information can be found in the write-up and on the GitHub README
     lr_tfidf = Pipeline([('vect', tfidf),
                          ('clf', SGD(loss='modified_huber', alpha=0.00015, n_iter=np.ceil(10 ** 6 / len(df['review'])),
-                                     random_state=5, l1_ratio=0.05, penalty='l2', shuffle=False,
-                                     learning_rate='optimal'))])
+                                     l1_ratio=0.05, penalty='l2', shuffle=False, learning_rate='optimal'))])
 
     #  Beginning of example for how we used GridSearchCV to find parameters
     #  This is only here to showcase how we found parameters - it would use parameter_grid2 from above
@@ -170,7 +225,7 @@ if __name__ == '__main__':
     # # End of GridSearchCV example
 
     # Train n_fold different models on each kfold and see how they perform
-    scores = cross_val_score(lr_tfidf, X, y, cv=skf, verbose=2, n_jobs=2)
+    scores = cross_val_score(lr_tfidf, X, y, cv=skf, verbose=2, n_jobs=4)
     # this is our average score of the models that we trained on with cross-validation
     print(scores.mean())
 
