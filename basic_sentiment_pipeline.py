@@ -23,17 +23,6 @@
     decent results from the cross-validation scores.
 """
 
-# TODO - clean up the other helper files (need to turn in most likely)
-# TODO - remove print statements of the cross validation scores
-# TODO - maybe make a logger? might help for overall completeness
-
-# TODO - WRITE UP
-# TODO - finish the README
-
-
-# TODO - ON FEB 22nd turn repo to public (unless people haven't turned in)
-
-
 import pandas as pd
 import pickle
 import numpy as np
@@ -76,16 +65,17 @@ class MyHTMLParser(HTMLParser):
     def get_data(self):
         return ' '.join(self.fed)
 
-
+# Both of the following aren't used anymore
 # porter stemming seemed to reduce our accuracy by around .1-.5%
 #  think it has to do with how it handles contractions
-porter_stem = PorterStemmer()
+
+porter_stem = PorterStemmer()  # unused - explanation in write-up
 
 #  these are the default stopwords along with some added punctuation
 #  no longer use this due to the addition of bigrams
 #  by removing stop words we could potentially change the actual meaning of the review
 stop_words = set(stopwords.words('english')).union(
-    {'.', 'I', 'i', ',', '\'', 'it', '*', '?', '/', '-', '&', '<', '>', '\"'})
+    {'.', 'I', 'i', ',', '\'', 'it', '*', '?', '/', '-', '&', '<', '>', '\"'})  # unused - explanation in write-up
 
 
 # The commented out lines for tokenizer and preprocessor are the more 'advanced'
@@ -134,7 +124,7 @@ def remove_unknown(filename):
     Take the given comma separated file and remove all HTML tags and
     unknown characters and save the output to a new csv file.
 
-    Only needs to be called once before the first time ever training.
+    Only needs to be called ONCE before the first time ever training.
     :param filename: is the name of the file to clean
     :return: None - writes to csv file the clean data
     """
@@ -142,21 +132,21 @@ def remove_unknown(filename):
     file[0] += '_cleaned'
 
     file = '.'.join(file)  # taking our input data and splicing 'cleaned' onto it
-    #  TODO - need to use df.drop() somehow to remove unknown characters (I think)
-    df = pd.read_csv(filename, encoding='utf-8', keep_default_na=True)
+    df_to_clean = pd.read_csv(filename, encoding='utf-8', keep_default_na=True)
 
-    for i in range(0, len(df)):
+    for i in range(0, len(df_to_clean)):
         parser = MyHTMLParser()
-        parser.feed(df['review'][i])
-        row = parser.get_data()
+        parser.feed(df_to_clean['review'][i])
+        row = parser.get_data()  # get the data w/o HTML
         new_row = ''
+        #  go through and remove any unknown characters - otherwise the to_csv skips the row
         for char in row:
             if ord(char) < 128:
                 new_row += char
-        df.set_value(i, 'review', new_row)
+        df_to_clean.set_value(i, 'review', new_row)
         parser.clear_data()
 
-    df.to_csv(path_or_buf=file, index=False, encoding='utf-8', na_rep=' ')
+    df_to_clean.to_csv(path_or_buf=file, index=False, encoding='utf-8', na_rep=' ')
 
 
 # this is to protect for running multiple jobs for gridsearchcv when on Windows
