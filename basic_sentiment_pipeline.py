@@ -224,3 +224,5 @@ if __name__ == '__main__':
 
     # Save the classifier for use later.
     pickle.dump(lr_tfidf, open("saved_model.sav", 'wb'))
+
+# remove_unknown("training_movie_data.csv")  # uncomment this line to get the cleaned data

@@ -7,6 +7,24 @@ a positive or negative review.
 The data provided hasn't been cleaned (HTML tags, foreign characters, fluff words) are present and must be
 removed to achieve a more accurate model.
 
+## Usage
+Note: this repo already has the cleaned data in it, but also contains the raw data, which
+is no longer used.
+
+```
+python basic_sentiment_pipeline.py
+```
+
+It will take around 10 minutes to run or so - varies per machine.
+
+When it ends there should be an average accuracy printed from the cross-validation
+and a pickled object will be saved that contains the trained model - file name of the
+trained model will be 'saved_model.sav'
+
+There is currently no longer any prediction code - however at some point it may be re-
+implemented if desired. 
+
+# Explanation of the Project
 ## Preprocessing of the Data
 The model that you train can only be as good as the data you feed it and the algorithm
 that you fit it with. Preprocessing data is an integral step throughout all of machine
@@ -268,4 +286,17 @@ the data.
 
 Logistic regression seemed relatively well - and with some parameter tuning we were able to
 get around an average of 89% accuracy.
-NOT DONE
+
+
+#### Stochastic Gradient Descent
+Stochastic Gradient Descent (SGD) is one of the more commonly used classifiers throughout
+machine learning. 
+
+[Here's a good explanation of it](http://sebastianruder.com/optimizing-gradient-descent/index.html#stochasticgradientdescent)
+
+One of the nicer aspects of SGD is the ability to easily change its loss function. One of
+the problems that was arising within plain Logistic Regression was the effect of outliers
+on our results. SGD allows for a huber loss as its loss function which basically
+lowers the impact that outliers had on the result.
+
+Most of the settings that were used for SGD were the default values.
